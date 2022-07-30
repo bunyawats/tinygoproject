@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	led  = machine.LED
+	ledOnB  = machine.LED
 	led3 = machine.GP3
 	led8 = machine.GP8
 	bnt  = machine.GP20
@@ -18,7 +18,7 @@ var (
 
 func configuration() {
 
-	led.Configure(machine.PinConfig{
+	ledOnB.Configure(machine.PinConfig{
 		Mode: machine.PinOutput,
 	})
 
@@ -42,14 +42,16 @@ func isr(p machine.Pin) {
 	state = !state
 	led3.Set(state)
 
-	go func() {
-		for i := 0; i < 5; i++ {
-			led8.High()
-			time.Sleep(time.Millisecond * 500)
-			led8.Low()
-			time.Sleep(time.Millisecond * 500)
-		}
-	}()
+	go blink(led8)
+}
+
+func blink(led machine.Pin) {
+	for i := 0; i < 5; i++ {
+		led.High()
+		time.Sleep(time.Millisecond * 500)
+		led.Low()
+		time.Sleep(time.Millisecond * 500)
+	}
 }
 
 func main() {
@@ -61,15 +63,15 @@ func main() {
 	for {
 		if state {
 			for count < 5 {
-				led.High()
+				ledOnB.High()
 				time.Sleep(time.Millisecond * 500)
-				led.Low()
+				ledOnB.Low()
 				time.Sleep(time.Millisecond * 500)
 				count++
 			}
 		} else {
 			count = 0
 		}
-		led.Low()
+		ledOnB.Low()
 	}
 }
