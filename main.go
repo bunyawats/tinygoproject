@@ -29,13 +29,12 @@ func configuration() {
 		Mode: machine.PinInputPulldown,
 	})
 
-	pin.SetInterrupt(
-		machine.PinFalling,
-		func(p machine.Pin) {
-			state = !state
-			led3.Set(state)
-		},
-	)
+	pin.SetInterrupt(machine.PinFalling, isr)
+}
+
+func isr(p machine.Pin) {
+	state = !state
+	led3.Set(state)
 }
 
 func main() {
