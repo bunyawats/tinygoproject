@@ -6,10 +6,10 @@ import (
 )
 
 const (
-	ledOnB  = machine.LED
-	led3 = machine.GP3
-	led8 = machine.GP8
-	bnt  = machine.GP20
+	ledOnB = machine.LED
+	led3   = machine.GP3
+	led8   = machine.GP8
+	bnt    = machine.GP20
 )
 
 var (
@@ -57,21 +57,11 @@ func blink(led machine.Pin) {
 func main() {
 
 	configuration()
-
-	count := 0
-
+	led3.Set(state)
 	for {
 		if state {
-			for count < 5 {
-				ledOnB.High()
-				time.Sleep(time.Millisecond * 500)
-				ledOnB.Low()
-				time.Sleep(time.Millisecond * 500)
-				count++
-			}
-		} else {
-			count = 0
+			blink(ledOnB)
 		}
-		ledOnB.Low()
+		time.Sleep(time.Second * 2)
 	}
 }
