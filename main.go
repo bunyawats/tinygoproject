@@ -2,6 +2,8 @@ package main
 
 import (
 	"machine"
+	"math/rand"
+	"sync"
 	"time"
 )
 
@@ -10,12 +12,18 @@ const (
 	led3   = machine.GP3
 	led8   = machine.GP8
 	led9   = machine.GP9
+	led10  = machine.GP10
 	bnt    = machine.GP20
+
+	max = 700
+	min = 300
 )
 
 var (
 	state = true
 	done  = make(chan bool, 1)
+	wg    sync.WaitGroup
+	r     *rand.Rand
 )
 
 func configuration() {
@@ -36,6 +44,10 @@ func configuration() {
 		Mode: machine.PinOutput,
 	})
 
+	led10.Configure(machine.PinConfig{
+		Mode: machine.PinOutput,
+	})
+
 	bnt.Configure(machine.PinConfig{
 		Mode: machine.PinInputPulldown,
 	})
@@ -43,23 +55,57 @@ func configuration() {
 	bnt.SetInterrupt(machine.PinFalling, isr)
 }
 
-func waitBlink(led machine.Pin, d chan bool) {
+func blink(led machine.Pin) {
+
+	time.Sleep(time.Second * 2)
+	delay := r.Intn(max-min) + min
+
+	for i := 0; i < 10; i++ {
+		led.High()
+		time.Sleep(time.Millisecond * time.Duration(delay))
+		led.Low()
+		time.Sleep(time.Millisecond * time.Duration(delay))
+	}
+
+}
+
+func waitBlinkCh(led machine.Pin, d chan bool) {
 	<-d
 	blink(led)
 	d <- true
 }
 
-func blink(led machine.Pin) {
+func waitBlinkWg(led machine.Pin, w sync.WaitGroup) {
 
-	time.Sleep(time.Second * 2)
+	blink(led)
+	w.Done()
+}
 
-	for i := 0; i < 10; i++ {
-		led.High()
-		time.Sleep(time.Millisecond * 500)
-		led.Low()
-		time.Sleep(time.Millisecond * 500)
-	}
+func blinkInRoutine() {
 
+	go func() {
+		blink(led8)
+		blink(led9)
+		blink(led10)
+	}()
+}
+
+func waitBlingChan() {
+
+	go waitBlinkCh(led8, done)
+	go waitBlinkCh(led9, done)
+	go waitBlinkCh(led10, done)
+}
+
+func waitBlinkGroup() {
+
+	wg.Add(3)
+
+	go waitBlinkWg(led8, wg)
+	go waitBlinkWg(led9, wg)
+	go waitBlinkWg(led10, wg)
+
+	wg.Done()
 }
 
 func isr(p machine.Pin) {
@@ -67,11 +113,15 @@ func isr(p machine.Pin) {
 	state = !state
 	led3.Set(state)
 
-	go func() {
-		blink(led8)
-		blink(led9)
-	}()
+	//blinkInRoutine()
+	//waitBlingChan()
+	waitBlinkGroup()
 
+}
+
+func init() {
+	s := rand.NewSource(time.Now().UnixNano())
+	r = rand.New(s)
 }
 
 func main() {
