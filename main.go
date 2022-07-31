@@ -23,7 +23,6 @@ var (
 	state = true
 	done  = make(chan bool, 1)
 	wg    sync.WaitGroup
-	r     *rand.Rand
 )
 
 func configuration() {
@@ -58,7 +57,9 @@ func configuration() {
 func blink(led machine.Pin) {
 
 	time.Sleep(time.Second * 2)
-	delay := r.Intn(max-min) + min
+
+	rand.Seed(time.Now().UnixNano())
+	delay := rand.Intn(max-min) + min
 
 	for i := 0; i < 10; i++ {
 		led.High()
@@ -117,11 +118,6 @@ func isr(p machine.Pin) {
 	//waitBlingChan()
 	waitBlinkGroup()
 
-}
-
-func init() {
-	s := rand.NewSource(time.Now().UnixNano())
-	r = rand.New(s)
 }
 
 func main() {
