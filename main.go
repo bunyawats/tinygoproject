@@ -46,7 +46,8 @@ func isr(p machine.Pin) {
 }
 
 func blink(led machine.Pin) {
-	for i := 0; i < 5; i++ {
+	time.Sleep(time.Second * 3)
+	for i := 0; i < 10; i++ {
 		led.High()
 		time.Sleep(time.Millisecond * 500)
 		led.Low()
