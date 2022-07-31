@@ -67,8 +67,10 @@ func isr(p machine.Pin) {
 	state = !state
 	led3.Set(state)
 
-	go waitBlink(led8, done)
-	go waitBlink(led9, done)
+	go func() {
+		blink(led8)
+		blink(led9)
+	}()
 
 }
 
